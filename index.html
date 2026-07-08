@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMIS - ระบบบริหารพัสดุและครุภัณฑ์ภาครัฐระดับองค์กร</title>
+    <!-- CSS Library -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0b3c5d;      /* Royal Blue ภาครัฐ */
+            --secondary-color: #328cc1;    /* Ocean Blue */
+            --accent-color: #d9b310;       /* Gold/Amber */
+            --bg-light: #f4f7f6;           /* เทาอ่อนหรูหรา */
+            --bg-dark: #1d2731;            /* ดาร์กโหมด */
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --font-family-thai: 'Prompt', 'Sarabun', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family-thai);
+            background-color: var(--bg-light);
+            color: #333;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        body.dark-mode {
+            background-color: #12181f;
+            color: #e0e0e0;
+        }
+
+        /* Loading Spinner */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        body.dark-mode #preloader {
+            background-color: rgba(18, 24, 31, 0.95);
+        }
+
+        /* Login Portal Design */
+        #login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top, var(--secondary-color) 0%, var(--primary-color) 100%);
+            padding: 20px;
+        }
+        .login-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease;
+        }
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #062235 100%);
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        /* Main App Layout */
+        #main-app-container {
+            display: none; /* ปิดการแสดงผลตอนเริ่มแรก เพื่อให้ล็อกอินก่อน */
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #062235 100%);
+            color: #fff;
+            min-height: 100vh;
+            position: fixed;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar-brand {
+            padding: 20px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            color: var(--accent-color);
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 10px 0;
+            margin: 0;
+        }
+        .sidebar-item a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .sidebar-item a:hover, .sidebar-item.active a {
+            color: #fff;
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: var(--accent-color);
+        }
+        .sidebar-item i {
+            width: 25px;
+            font-size: 1.1rem;
+        }
+
+        /* Top Navbar */
+        .main-header {
+            margin-left: 260px;
+            background-color: #fff;
+            padding: 15px 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .main-header {
+            background-color: #1d2731;
+            border-bottom: 1px solid #2d3d4d;
+        }
+
+        /* Content Area */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s ease;
+        }
+
+        /* Cards & Widgets */
+        .card-custom {
+            background-color: #fff;
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        body.dark-mode .card-custom {
+            background-color: #1d2731;
+            color: #fff;
+        }
+        .card-header-gov {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            border-bottom: none;
+        }
+
+        /* State Badges */
+        .badge-status {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Keyframes Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Responsive adjustments */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                margin-left: -260px;
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .main-header, .main-content {
+                margin-left: 0 !important;
+            }
+            .mobile-toggle {
+                display: block !important;
+            }
+        }
+
+        .mobile-toggle {
+            display: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* Print Layout Rules */
+        @media print {
+            .sidebar, .main-header, .btn, .no-print {
+                display: none !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+            .card-custom {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- โหลดดิ้งสปินเนอร์ -->
+    <div id="preloader">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+        <h5 class="text-secondary fw-bold">กำลังดาวน์โหลดข้อมูลระบบ AMIS...</h5>
+        <small class="text-muted">โปรดรอสักครู่ ระบบกำลังสื่อสารกับฐานข้อมูล Google Sheets</small>
+    </div>
+
+    <!-- ส่วนที่ 1: Portal ลงทะเบียน / ล็อกอินสิทธิ์ผู้ใช้ -->
+    <div id="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fa-solid fa-layer-group fa-3x text-warning mb-2"></i>
+                <h4 class="fw-bold m-0 text-warning">AMIS PORTAL</h4>
+                <div class="small opacity-75">ระบบสารสนเทศบริหารพัสดุและครุภัณฑ์ภาครัฐ</div>
+            </div>
+            <div class="p-4">
+                <div class="alert alert-info py-2 text-center" style="font-size: 12px;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> เข้าใช้งานในฐานะผู้ควบคุม/ตรวจสอบระบบกลาง
+                </div>
+                <form id="login-form" onsubmit="handleLogin(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">บัญชีอีเมลหน่วยงานรัฐ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-secondary"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="login-email" class="form-control" value="staff-amis@gov.th" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark">รหัสผ่าน (Secure Password)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-secondary"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" id="login-password" class="form-control" value="••••••••" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">สิทธิ์ตำแหน่งข้าราชการ (RBAC Role)</label>
+                        <select id="login-role" class="form-select">
+                            <option value="Admin|ผู้ดูแลระบบสูงสุด (System Admin)">Admin (ผู้ดูแลระบบสูงสุด)</option>
+                            <option value="Asset Officer|เจ้าหน้าที่พัสดุอาวุโส (Asset Officer)" selected>Asset Officer (เจ้าหน้าที่พัสดุอาวุโส)</option>
+                            <option value="Auditor|ผู้ตรวจสอบบัญชีกลาง (Auditor)">Auditor (ผู้ตรวจสอบภายนอก)</option>
+                            <option value="Executive|ผู้บริหารระดับสูง (Executive)">Executive (ผู้บริหารระดับสูง)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mt-2"><i class="fa-solid fa-right-to-bracket me-2"></i>ยืนยันเข้าสู่ระบบอย่างปลอดภัย</button>
+                </form>
+                <div class="text-center mt-3">
+                    <small class="text-muted" style="font-size: 11px;">รักษาความปลอดภัยด้วยนโยบาย PDPA & SSL Encryption</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ส่วนที่ 2: ระบบบริหารพัสดุหลัก (Main App Layout) -->
+    <div id="main-app-container">
+        <!-- แถบด้านข้าง (Sidebar) -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-layer-group me-2"></i>AMIS ENGINE
+                <div style="font-size: 10px; color: #aaa; font-weight: 400; margin-top: 5px;">ระบบสารสนเทศครุภัณฑ์ภาครัฐ</div>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item active" data-tab="dashboard">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-chart-line"></i><span>หน้าแรก / Dashboard</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="assets">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-boxes-packing"></i><span>ทะเบียนครุภัณฑ์ (Assets)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="inventory">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-warehouse"></i><span>คลังพัสดุ (Inventory)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="borrow">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-handshake"></i><span>การยืม-คืนพัสดุ (Borrow)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="repair">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-screwdriver-wrench"></i><span>การแจ้งซ่อม (Repair)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="inspection">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-clipboard-check"></i><span>ตรวจนับประจำปี (Annual)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="disposal">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-trash-can"></i><span>จำหน่ายพัสดุ (Disposal)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="reports">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-file-invoice-dollar"></i><span>รายงาน & ส่งออก (Reports)</span></a>
+                </li>
+                <li class="sidebar-item" data-tab="settings">
+                    <a href="javascript:void(0)"><i class="fa-solid fa-gears"></i><span>การตั้งค่าระบบ (Settings)</span></a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ส่วนหัวด้านบน (Top Navbar) -->
+        <div class="main-header">
+            <div class="d-flex align-items-center">
+                <div class="mobile-toggle me-3" onclick="toggleSidebar()"><i class="fa-solid fa-bars text-primary"></i></div>
+                <h5 class="m-0 fw-bold text-primary" id="page-title">แดชบอร์ดบริหารพัสดุระดับองค์กร</h5>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-secondary btn-sm" onclick="toggleDarkMode()"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <div class="dropdown">
+                    <div class="d-flex align-items-center gap-2 dropdown-toggle" style="cursor: pointer;" data-bs-toggle="dropdown">
+                        <img id="user-avatar" src="https://ui-avatars.com/api/?name=Government+User&background=0b3c5d&color=fff" class="rounded-circle" width="35" height="35">
+                        <div class="text-start d-none d-md-block">
+                            <div class="fw-bold" id="user-display-name" style="font-size: 13px;">เจ้าหน้าที่พัสดุอาวุโส</div>
+                            <small class="text-muted text-uppercase" id="user-role" style="font-size: 10px;">Asset Officer (Admin)</small>
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openProfile()"><i class="fa-solid fa-user me-2"></i>ประวัติส่วนตัว</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="simulateBackup()"><i class="fa-solid fa-database me-2"></i>สำรองฐานข้อมูล (Backup)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="logout()"><i class="fa-solid fa-right-from-bracket me-2"></i>ออกจากระบบ</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ส่วนเนื้อหาหลัก (Main Content) -->
+        <div class="main-content">
+            
+            <!-- โมดูลแดชบอร์ด -->
+            <div id="tab-dashboard" class="tab-panel">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card-custom p-3 bg-white border-start border-4 border-primary">
+                            <div class="text-muted mb-1 font-semibold text-uppercase" style="font-size: 11px;">ครุภัณฑ์ทั้งหมดในระบบ</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="m-0 fw-bold text-primary" id="kpi-total-assets">1,248</h2>
+                                <i class="fa-solid fa-boxes-stacked fa-2x text-primary opacity-25"></i>
+                            </div>
+                            <small class="text-success" style="font-size:11px;"><i class="fa-solid fa-trending-up"></i> เพิ่มขึ้น 4.2% ไตรมาสนี้</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-custom p-3 bg-white border-start border-4 border-success">
+                            <div class="text-muted mb-1 font-semibold text-uppercase" style="font-size: 11px;">มูลค่ารวมพัสดุ (บาท)</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="m-0 fw-bold text-success" id="kpi-total-value">84.2M</h2>
+                                <i class="fa-solid fa-sack-dollar fa-2x text-success opacity-25"></i>
+                            </div>
+                            <small class="text-muted" style="font-size:11px;">คิดค่าเสื่อมราคาปัจจุบันตามหลักบัญชี</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-custom p-3 bg-white border-start border-4 border-warning">
+                            <div class="text-muted mb-1 font-semibold text-uppercase" style="font-size: 11px;">ค้างส่งคืน / ยืมใช้งาน</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="m-0 fw-bold text-warning" id="kpi-borrowed">35</h2>
+                                <i class="fa-solid fa-handshake-angle fa-2x text-warning opacity-25"></i>
+                            </div>
+                            <small class="text-danger" style="font-size:11px;"><i class="fa-solid fa-clock"></i> เกินกำหนดส่งคืน 4 รายการ</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card-custom p-3 bg-white border-start border-4 border-danger">
+                            <div class="text-muted mb-1 font-semibold text-uppercase" style="font-size: 11px;">อยู่ระหว่างซ่อมบำรุง</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h2 class="m-0 fw-bold text-danger" id="kpi-repairs">12</h2>
+                                <i class="fa-solid fa-wrench-simple fa-2x text-danger opacity-25"></i>
+                            </div>
+                            <small class="text-danger" style="font-size:11px;">กระทบต่อการทำงาน 2 เครื่อง</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- กราฟและแผนภาพสถิติ -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-8">
+                        <div class="card-custom p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="m-0 fw-bold text-primary"><i class="fa-solid fa-chart-bar me-2"></i>มูลค่าครุภัณฑ์จำแนกตามกลุ่มพัสดุ (Asset Classification Value)</h6>
+                                <span class="badge bg-light text-primary border rounded-pill">ปีงบประมาณล่าสุด</span>
+                            </div>
+                            <div style="height: 320px; position: relative;">
+                                <canvas id="chart-asset-value"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card-custom p-4">
+                            <h6 class="m-0 fw-bold text-primary mb-3"><i class="fa-solid fa-chart-pie me-2"></i>สัดส่วนสถานะการใช้งาน</h6>
+                            <div style="height: 250px; position: relative;" class="d-flex justify-content-center align-items-center">
+                                <canvas id="chart-asset-status"></canvas>
+                            </div>
+                            <div class="mt-3 text-center text-xs text-muted">แสดงข้อมูลสถานะแบบเรียลไทม์ตามระเบียบพัสดุ 2560</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- กิจกรรมและตารางตรวจบำรุงรักษาล่าสุด -->
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="card-custom">
+                            <div class="card-header-gov d-flex justify-content-between align-items-center">
+                                <span class="m-0"><i class="fa-solid fa-bell me-2"></i>ประวัติกิจกรรมล่าสุดในระบบ (Audit Logs)</span>
+                                <span class="badge bg-white text-dark text-xs">เรียลไทม์</span>
+                            </div>
+                            <div class="p-3" style="max-height: 350px; overflow-y: auto;">
+                                <div class="list-group list-group-flush" id="audit-log-list">
+                                    <!-- รายการจะถูกสร้างอัตโนมัติด้วย JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card-custom">
+                            <div class="card-header-gov d-flex justify-content-between align-items-center">
+                                <span class="m-0"><i class="fa-solid fa-calendar-check me-2"></i>ตารางเวลาการซ่อมบำรุงเชิงป้องกัน (PM Schedule)</span>
+                                <button class="btn btn-sm btn-light py-0 px-2 text-xs" onclick="triggerPMEmailAlert()">แจ้งเตือนทางอีเมล</button>
+                            </div>
+                            <div class="p-3">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover align-middle">
+                                        <thead>
+                                            <tr class="table-light">
+                                                <th>รหัสครุภัณฑ์</th>
+                                                <th>รายการทรัพย์สิน</th>
+                                                <th>กำหนดวันตรวจบำรุง</th>
+                                                <th>เจ้าหน้าที่</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pm-schedule-tbody">
+                                            <!-- รายงานแผนงาน -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลทะเบียนครุภัณฑ์ -->
+            <div id="tab-assets" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-database me-2"></i>บัญชีทะเบียนครุภัณฑ์กลาง</h5>
+                            <button class="btn btn-outline-primary btn-sm" onclick="showAssetAddModal()"><i class="fa-solid fa-plus me-1"></i>ขึ้นทะเบียนครุภัณฑ์</button>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-success btn-sm" onclick="exportToExcel('assets')"><i class="fa-solid fa-file-excel me-1"></i>Excel</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="exportToPDF('assets')"><i class="fa-solid fa-file-pdf me-1"></i>PDF</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="startQRScanner()"><i class="fa-solid fa-qrcode me-1"></i>สแกนด่วน</button>
+                        </div>
+                    </div>
+
+                    <!-- ช่องค้นหาข้อมูลขั้นสูง -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <input type="text" id="asset-search" class="form-control" placeholder="ค้นหาด้วยรหัสครุภัณฑ์, ชื่อ, เลขที่สัญญา..." oninput="filterAssetsTable()">
+                        </div>
+                        <div class="col-md-3">
+                            <select id="asset-filter-category" class="form-select" onchange="filterAssetsTable()">
+                                <option value="">-- แยกตามประเภท --</option>
+                                <option value="ครุภัณฑ์คอมพิวเตอร์">ครุภัณฑ์คอมพิวเตอร์</option>
+                                <option value="ครุภัณฑ์สำนักงาน">ครุภัณฑ์สำนักงาน</option>
+                                <option value="ครุภัณฑ์ยานพาหนะ">ครุภัณฑ์ยานพาหนะ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="asset-filter-status" class="form-select" onchange="filterAssetsTable()">
+                                <option value="">-- แยกตามสถานะ --</option>
+                                <option value="ปกติ / ใช้งานได้ดี">ปกติ / ใช้งานได้ดี</option>
+                                <option value="อยู่ระหว่างซ่อม">อยู่ระหว่างซ่อม</option>
+                                <option value="ชำรุด / รอจำหน่าย">ชำรุด / รอจำหน่าย</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-secondary w-full" onclick="clearFilters()">ล้างตัวกรอง</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="assets-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>รหัสครุภัณฑ์ (Asset ID)</th>
+                                    <th>รายการทรัพย์สิน</th>
+                                    <th>ประเภท</th>
+                                    <th>มูลค่าจัดซื้อ (บาท)</th>
+                                    <th>วันจัดซื้อ</th>
+                                    <th>อายุการใช้งาน (ปี)</th>
+                                    <th>ค่าเสื่อมสะสม (บาท)</th>
+                                    <th>สถานะ</th>
+                                    <th class="text-center">เครื่องมือดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assets-tbody">
+                                <!-- จะใส่ข้อมูลผ่าน JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลคลังพัสดุและพัสดุคงคลัง -->
+            <div id="tab-inventory" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-warehouse me-2"></i>พัสดุคงคลังและรายการอุปกรณ์สิ้นเปลือง</h5>
+                        <button class="btn btn-outline-primary btn-sm" onclick="showAddInventoryModal()"><i class="fa-solid fa-plus me-1"></i>รับพัสดุเข้าคลัง (Receive)</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>รหัสพัสดุ</th>
+                                    <th>ชื่อรายการ</th>
+                                    <th>หมวดหมู่พัสดุ</th>
+                                    <th>จำนวนในคลัง</th>
+                                    <th>หน่วยนับ</th>
+                                    <th>จุดสั่งซื้อขั้นต่ำ (Reorder)</th>
+                                    <th>ราคาต่อหน่วย (บาท)</th>
+                                    <th>สถานะยอดคงคลัง</th>
+                                    <th>จ่ายพัสดุ (Issue)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-tbody">
+                                <!-- รายการพัสดุคงคลังจำลอง -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลการยืม-คืนพัสดุ -->
+            <div id="tab-borrow" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-handshake me-2"></i>แบบคำร้องและการควบคุมการยืม-คืนพัสดุ</h5>
+                        <button class="btn btn-primary btn-sm" onclick="showBorrowModal()"><i class="fa-solid fa-file-signature me-1"></i>สร้างใบยืมพัสดุใหม่</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>เลขที่ใบยืม</th>
+                                    <th>ครุภัณฑ์ที่ยืม</th>
+                                    <th>ผู้ยืม</th>
+                                    <th>หน่วยงานยืม</th>
+                                    <th>วันที่ยืม</th>
+                                    <th>กำหนดวันส่งคืน</th>
+                                    <th>สถานะรายการ</th>
+                                    <th>การอนุมัติ</th>
+                                    <th>การดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="borrow-tbody">
+                                <!-- รายการข้อมูลยืมคืน -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลการแจ้งซ่อม -->
+            <div id="tab-repair" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-screwdriver-wrench me-2"></i>งานแจ้งซ่อมและบำรุงรักษาครุภัณฑ์</h5>
+                        <button class="btn btn-danger btn-sm" onclick="showRepairRequestModal()"><i class="fa-solid fa-triangle-exclamation me-1"></i>แจ้งอาการชำรุด/ซ่อมด่วน</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>เลขที่ใบแจ้งซ่อม</th>
+                                    <th>ครุภัณฑ์ที่ชำรุด</th>
+                                    <th>อาการที่พบ</th>
+                                    <th>ระดับความเร่งด่วน</th>
+                                    <th>ผู้แจ้ง</th>
+                                    <th>ประเมินค่าซ่อม (บาท)</th>
+                                    <th>สถานะงาน</th>
+                                    <th>วันที่แจ้งซ่อม</th>
+                                    <th>ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="repair-tbody">
+                                <!-- รายการประวัติแจ้งซ่อม -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลการตรวจนับประจำปี -->
+            <div id="tab-inspection" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-clipboard-check me-2"></i>ระบบการตรวจสอบพัสดุประจำปี (ตามมาตรา 113)</h5>
+                        <button class="btn btn-outline-primary btn-sm" onclick="startAnnualInspectionCycle()"><i class="fa-solid fa-circle-play me-1"></i>เปิดรอบตรวจสอบประจำปี</button>
+                    </div>
+                    <div class="alert alert-info py-2" style="font-size: 13px;">
+                        <i class="fa-solid fa-circle-info me-2"></i>อ้างอิงระเบียบกระทรวงการคลัง: ทุกสิ้นปีงบประมาณต้องแต่งตั้งคณะกรรมการตรวจนับพัสดุและรายงานผู้บริหารภายใน 30 วันทำการ
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ปีงบประมาณ</th>
+                                    <th>จำนวนครุภัณฑ์ทั้งหมด</th>
+                                    <th>ผลการตรวจสอบล่าสุด</th>
+                                    <th>พบชำรุด/สูญหาย</th>
+                                    <th>สถานะการตรวจนับ</th>
+                                    <th>คณะกรรมการ</th>
+                                    <th>ลงนามดิจิทัล</th>
+                                    <th>รายงานสรุป</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inspection-tbody">
+                                <!-- รายการตรวจนับ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลจำหน่ายพัสดุ -->
+            <div id="tab-disposal" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-trash-can me-2"></i>การตัดจ่ายและจำหน่ายครุภัณฑ์ออกจากบัญชีทรัพย์สิน</h5>
+                        <button class="btn btn-outline-danger btn-sm" onclick="showDisposalForm()"><i class="fa-solid fa-receipt me-1"></i>เสนอตัดบัญชีครุภัณฑ์</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>เลขที่คำขอ</th>
+                                    <th>รหัสครุภัณฑ์</th>
+                                    <th>ชื่อรายการ</th>
+                                    <th>วิธีการจำหน่าย</th>
+                                    <th>เหตุผลการจำหน่าย</th>
+                                    <th>มูลค่าซากที่รับได้ (บาท)</th>
+                                    <th>วันที่จำหน่าย</th>
+                                    <th>สถานะทางกฎหมาย</th>
+                                    <th>หลักฐาน (PDF/รูป)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="disposal-tbody">
+                                <!-- รายการคำร้องขอจำหน่าย -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลรายงาน -->
+            <div id="tab-reports" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <h5 class="fw-bold text-primary mb-4"><i class="fa-solid fa-file-invoice-dollar me-2"></i>ระบบศูนย์รายงานและส่งออกเอกสารราชการ (70+ Reports Suite)</h5>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="list-group">
+                                <button type="button" class="list-group-item list-group-item-action active" onclick="switchReportCategory('reg')">
+                                    <i class="fa-solid fa-book me-2"></i>หมวดทะเบียนพัสดุและทรัพย์สิน
+                                </button>
+                                <button type="button" class="list-group-item list-group-item-action" onclick="switchReportCategory('dep')">
+                                    <i class="fa-solid fa-calculator me-2"></i>หมวดรายงานการคำนวณค่าเสื่อมราคา
+                                </button>
+                                <button type="button" class="list-group-item list-group-item-action" onclick="switchReportCategory('wrk')">
+                                    <i class="fa-solid fa-person-digging me-2"></i>หมวดรายงานการดำเนินงาน (ยืม/ซ่อม)
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card p-3 border">
+                                <h6 class="fw-bold text-primary mb-3" id="report-category-title">หมวดทะเบียนพัสดุและทรัพย์สิน</h6>
+                                <ul class="list-unstyled d-flex flex-column gap-2" id="report-items-list">
+                                    <li class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                        <span>1. ทะเบียนคุมครุภัณฑ์ประจำปี (ตาม พ.ร.บ. 2560)</span>
+                                        <button class="btn btn-sm btn-primary" onclick="generateReport('asset_register')">ดาวน์โหลดไฟล์ PDF</button>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                        <span>2. รายงานสรุปยอดมูลค่าครุภัณฑ์รายประเภท</span>
+                                        <button class="btn btn-sm btn-success" onclick="generateReport('asset_summary_excel')">ดาวน์โหลด Excel</button>
+                                    </li>
+                                    <li class="d-flex justify-content-between align-items-center p-2 border-bottom">
+                                        <span>3. รายชื่อครุภัณฑ์ที่ไม่มีตัวตน / สูญหาย</span>
+                                        <button class="btn btn-sm btn-danger" onclick="generateReport('asset_lost')">ดูรายงาน</button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- โมดูลตั้งค่าระบบ -->
+            <div id="tab-settings" class="tab-panel d-none">
+                <div class="card-custom p-4">
+                    <h5 class="fw-bold text-primary mb-4"><i class="fa-solid fa-gears me-2"></i>กำหนดค่าการทำงานของระบบ (System Configuration Engine)</h5>
+                    <form id="settings-form" onsubmit="saveSystemSettings(event)">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">ชื่อหน่วยงานราชการ</label>
+                                <input type="text" class="form-control" name="gov_name" value="สำนักงานพัฒนาพัสดุและครุภัณฑ์กลางแห่งประเทศไทย">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">สัญลักษณ์/รหัสหน่วยงาน</label>
+                                <input type="text" class="form-control" name="gov_code" value="GOV-AMIS-10200">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">ระบบแจ้งเตือนหลัก</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="notif_email" checked>
+                                    <label class="form-check-label">แจ้งเตือนทางอีเมล (Email Notification)</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="notif_line" checked>
+                                    <label class="form-check-label">ระบบ LINE Notify (Webhook API)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">นโยบายความปลอดภัยทางข้อมูล (PDPA)</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="pdpa_encrypt" checked>
+                                    <label class="form-check-label">เข้ารหัสข้อมูลบัตรประชาชนและข้อมูลส่วนบุคคล</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="pdpa_log" checked>
+                                    <label class="form-check-label">บันทึกประวัติการเข้าอ่านข้อมูลแบบละเอียด</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">รูปแบบรหัสครุภัณฑ์อัตโนมัติ</label>
+                                <input type="text" class="form-control" name="asset_format" value="AMIS-YYYY-[CAT]-[RUNNING]">
+                            </div>
+                            <div class="col-12 mt-4 text-end">
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>บันทึกการตั้งค่าทั้งหมด</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- หน้าต่างสแกน QR Code ด่วน (Modal-Scanner) -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-qrcode me-2"></i>เครื่องสแกนเนอร์ครุภัณฑ์ระบบคิวอาร์</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="text-muted">โปรดสแกนรหัสคิวอาร์ที่ติดอยู่ที่ตัวพัสดุหรือครุภัณฑ์</p>
+                    <div id="qr-reader" class="border rounded mx-auto" style="width: 100%; max-width: 320px; height: 240px; background-color: #eee; display: flex; align-items: center; justify-content: center;">
+                        <div>
+                            <i class="fa-solid fa-camera fa-3x text-secondary mb-2"></i>
+                            <div class="small text-secondary">กล้องกล้องพร้อมเริ่มการสแกน</div>
+                        </div>
+                    </div>
+                    <div class="input-group mt-3 mx-auto" style="max-width: 320px;">
+                        <input type="text" id="manual-qr-code" class="form-control" placeholder="หรือป้อนรหัสครุภัณฑ์โดยตรง...">
+                        <button class="btn btn-primary" onclick="submitManualCode()">ตรวจสอบ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้าต่างการแสดงคิวอาร์โค้ดครุภัณฑ์ (QR Viewer Modal) -->
+    <div class="modal fade" id="qrViewerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h6 class="modal-title">QR Code ทะเบียนครุภัณฑ์</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <h6 class="fw-bold" id="qr-view-name">ชื่อเครื่อง</h6>
+                    <small class="text-secondary d-block mb-3" id="qr-view-code">AMIS-CODE</small>
+                    <div class="border p-3 rounded bg-light mb-3">
+                        <img id="qr-view-img" src="" style="width:100%; max-width:180px;">
+                    </div>
+                    <button class="btn btn-primary btn-sm w-full" onclick="window.print()"><i class="fa-solid fa-print me-1"></i>สั่งพิมพ์ป้ายครุภัณฑ์</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้าต่างแบบฟอร์มเพิ่ม/แก้ไขครุภัณฑ์ (Asset Form Modal) -->
+    <div class="modal fade" id="assetFormModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="assetModalTitle"><i class="fa-solid fa-cube me-2"></i>ขึ้นทะเบียนครุภัณฑ์ใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="asset-form" onsubmit="saveAssetItem(event)">
+                        <input type="hidden" id="form-asset-id-internal">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">รหัสครุภัณฑ์หลัก (Asset ID)</label>
+                                <input type="text" class="form-control" id="form-asset-code" required placeholder="ตัวอย่าง: 7440-001-0001">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">รายการครุภัณฑ์ (Asset Name)</label>
+                                <input type="text" class="form-control" id="form-asset-name" required placeholder="เช่น โทรทัศน์จอแบน แอลอีดี 55 นิ้ว">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">ประเภทพัสดุ</label>
+                                <select class="form-select" id="form-asset-category" required>
+                                    <option value="ครุภัณฑ์คอมพิวเตอร์">ครุภัณฑ์คอมพิวเตอร์</option>
+                                    <option value="ครุภัณฑ์สำนักงาน">ครุภัณฑ์สำนักงาน</option>
+                                    <option value="ครุภัณฑ์ยานพาหนะ">ครุภัณฑ์ยานพาหนะ</option>
+                                    <option value="ครุภัณฑ์งานครัว">ครุภัณฑ์งานครัว</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">มูลค่าที่ได้มา (บาท)</label>
+                                <input type="number" step="0.01" class="form-control" id="form-asset-value" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">วันที่ได้ทรัพย์สินมา</label>
+                                <input type="date" class="form-control" id="form-asset-date" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">อายุใช้งานขั้นต่ำ (ปี)</label>
+                                <input type="number" class="form-control" id="form-asset-life" required value="5">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">สถานที่ติดตั้ง/จัดวาง</label>
+                                <input type="text" class="form-control" id="form-asset-location" value="ห้องปฏิบัติการพัสดุ ชั้น 2">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">สถานะความพร้อม</label>
+                                <select class="form-select" id="form-asset-status">
+                                    <option value="ปกติ / ใช้งานได้ดี">ปกติ / ใช้งานได้ดี</option>
+                                    <option value="อยู่ระหว่างซ่อม">อยู่ระหว่างซ่อม</option>
+                                    <option value="ชำรุด / รอจำหน่าย">ชำรุด / รอจำหน่าย</option>
+                                </select>
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>บันทึกข้อมูลครุภัณฑ์</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        /*********************************************************************************
+         * DATABASE DESIGN & DATA DICTIONARY (IN-MEMORY MOCK FOR WEB PREVIEW)
+         * ระบบจำลองสถาปัตยกรรมข้อมูลภาครัฐ รองรับความจุสูง (Enterprise Simulation Database)
+         *********************************************************************************/
+        
+        // จำลองข้อมูลครุภัณฑ์ 10 รายการต้นแบบ สำหรับแสดงผลและการวิเคราะห์เบื้องต้น
+        var mockAssets = [
+            { id: "1", code: "7440-001-0001", name: "เครื่องคอมพิวเตอร์ประมวลผลประสิทธิภาพสูง", category: "ครุภัณฑ์คอมพิวเตอร์", value: 45000.00, date: "2023-01-15", life: 5, location: "ศูนย์คอมพิวเตอร์ ชั้น 4", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "2", code: "7440-001-0002", name: "เครื่องพิมพ์เลเซอร์สีความเร็วสูง", category: "ครุภัณฑ์คอมพิวเตอร์", value: 18500.00, date: "2023-03-20", life: 5, location: "กลุ่มงานพัสดุ ชั้น 1", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "3", code: "7110-002-0050", name: "โต๊ะทำงานโครงเหล็กพร้อมลิ้นชัก", category: "ครุภัณฑ์สำนักงาน", value: 6500.00, date: "2022-05-10", life: 10, location: "ห้องผู้อำนวยการ ชั้น 3", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "4", code: "7110-002-0051", name: "เก้าอี้สำนักงานหุ้มหนังพรีเมียม", category: "ครุภัณฑ์สำนักงาน", value: 4200.00, date: "2022-05-10", life: 10, location: "ห้องผู้อำนวยการ ชั้น 3", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "5", code: "2320-005-0001", name: "รถยนต์ตู้โดยสาร 12 ที่นั่ง (ดีเซล)", category: "ครุภัณฑ์ยานพาหนะ", value: 1150000.00, date: "2021-12-01", life: 8, location: "โรงรถส่วนกลาง อาคาร บี", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "6", code: "7440-001-0003", name: "เครื่องคอมพิวเตอร์พกพา (Notebook Laptop)", category: "ครุภัณฑ์คอมพิวเตอร์", value: 32000.00, date: "2024-02-10", life: 5, location: "กลุ่มวิเคราะห์งบประมาณ", status: "อยู่ระหว่างซ่อม" },
+            { id: "7", code: "7440-001-0004", name: "ระบบแม่ข่ายประมวลผลแบบ Cloud Local", category: "ครุภัณฑ์คอมพิวเตอร์", value: 240000.00, date: "2020-08-15", life: 5, location: "ศูนย์คอมพิวเตอร์ ชั้น 4", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "8", code: "7110-002-0052", name: "เครื่องทำน้ำเย็นแสตนเลส 3 หัวต่อ", category: "ครุภัณฑ์สำนักงาน", value: 12500.00, date: "2021-04-12", life: 5, location: "โถงทางเดินชั้น 2", status: "ชำรุด / รอจำหน่าย" },
+            { id: "9", code: "7440-001-0005", name: "เครื่องปรับอากาศติดผนัง 24000 BTU", category: "ครุภัณฑ์สำนักงาน", value: 28500.00, date: "2022-11-20", life: 8, location: "ห้องประชุมสารสนเทศ ชั้น 2", status: "ปกติ / ใช้งานได้ดี" },
+            { id: "10", code: "2320-005-0002", name: "รถจักรยานยนต์สายตรวจ 150cc", category: "ครุภัณฑ์ยานพาหนะ", value: 75000.00, date: "2023-06-05", life: 5, location: "ลานจอดรถด้านหน้าสำนักงาน", status: "ปกติ / ใช้งานได้ดี" }
+        ];
+
+        var mockInventory = [
+            { id: "P001", name: "กระดาษ A4 80 แกรม ดับเบิ้ลเอ", category: "วัสดุสำนักงาน", qty: 450, unit: "รีม", min: 100, price: 125.00, status: "ปกติ" },
+            { id: "P002", name: "หมึกพิมพ์เทียบเท่า HP 85A", category: "วัสดุคอมพิวเตอร์", qty: 25, unit: "กล่อง", min: 30, price: 950.00, status: "ต่ำกว่าเกณฑ์การสั่งซื้อ" },
+            { id: "P003", name: "น้ำยาเช็ดทำความสะอาดเอนกประสงค์", category: "วัสดุงานครัว/งานบ้าน", qty: 12, unit: "แกลลอน", min: 10, price: 180.00, status: "ปกติ" },
+            { id: "P004", name: "แฮนดี้ไดร์ฟ USB 32GB", category: "วัสดุคอมพิวเตอร์", qty: 98, unit: "อัน", min: 20, price: 150.00, status: "ปกติ" }
+        ];
+
+        var mockBorrow = [
+            { id: "BR-69001", assetName: "เครื่องคอมพิวเตอร์พกพา (Notebook Laptop)", borrower: "นางสาวศิริพร บุญช่วย", dept: "สำนักงานผู้อำนวยการ", borrowDate: "2026-06-01", dueDate: "2026-07-01", status: "กำลังยืม", approval: "อนุมัติแล้ว" },
+            { id: "BR-69002", assetName: "เครื่องพิมพ์เลเซอร์สีความเร็วสูง", borrower: "นายสมชาย รักสัตย์", dept: "กลุ่มนโยบายและแผน", borrowDate: "2026-05-15", dueDate: "2026-05-25", status: "คืนแล้ว", approval: "อนุมัติแล้ว" }
+        ];
+
+        var mockRepair = [
+            { id: "RP-69001", assetName: "เครื่องคอมพิวเตอร์พกพา (Notebook Laptop)", symptom: "เปิดเครื่องไม่ติด และมีเสียงพัดลมดังผิดปกติ", level: "ด่วนที่สุด", requester: "นางสาวศิริพร บุญช่วย", cost: 1500.00, status: "กำลังซ่อมแซม", date: "2026-06-15" },
+            { id: "RP-69002", assetName: "เครื่องปรับอากาศติดผนัง 24000 BTU", symptom: "แอร์ไม่เย็น มีแต่น้ำหยดจากคอยล์เย็น", level: "เร่งด่วน", requester: "นายวิทยา ใจดี", cost: 2400.00, status: "ซ่อมเสร็จสิ้น", date: "2026-05-20" }
+        ];
+
+        var mockInspection = [
+            { id: "2025", total: 10, ok: 9, broken: 1, status: "ส่งรายงานแล้ว", committee: "นายเอกชัย และคณะ 3 ท่าน", signature: "ลงนามดิจิทัลครบ", report: "สรุปการตรวจสอบประจำปี 2568" }
+        ];
+
+        var mockDisposal = [
+            { id: "DP-69001", assetCode: "7110-002-0052", assetName: "เครื่องทำน้ำเย็นแสตนเลส 3 หัวต่อ", method: "แทงจำหน่ายชำรุดทรุดโทรม", reason: "ถังเก็บรั่ว ระบบความเย็นเสียหายประเมินราคาซ่อมไม่คุ้มค่า", scrapValue: 500.00, date: "2026-06-12", status: "ได้รับการอนุมัติ" }
+        ];
+
+        var auditLogs = [
+            { time: "16:40:12", user: "Admin", action: "ขึ้นทะเบียนครุภัณฑ์รหัส 7440-001-0005 สำเร็จ" },
+            { time: "16:15:33", user: "Asset Officer", action: "อนุมัติการจ่ายพัสดุกระดาษ A4 จำนวน 10 รีม" },
+            { time: "15:30:00", user: "Auditor", action: "เข้าดูทะเบียนครุภัณฑ์และตรวจสอบค่าเสื่อมราคาประจำปี" }
+        ];
+
+        /*********************************************************************************
+         * BOOTSTRAP SYSTEM APPLICATION INIT
+         *********************************************************************************/
+        function startApp() {
+            // ปิดภาพการโหลดระบบหลัก
+            setTimeout(function() {
+                var preloader = document.getElementById('preloader');
+                if (preloader) {
+                    preloader.style.opacity = '0';
+                    setTimeout(function() {
+                        preloader.style.display = 'none';
+                    }, 500);
+                }
+            }, 800);
+
+            // เริ่มแรกแอปจะแสดงหน้าล็อกอิน (#login-container มีผลอยู่แล้วผ่านโครงสร้าง CSS)
+            // ยังไม่มีการรันตารางในแอปหลัก จนกว่าจะ handleLogin สำเร็จ
+        }
+
+        // ตรวจสอบและรันแอปพลิเคชันอย่างปลอดภัย (ป้องกันปัญหา window.onload ไม่ทำงานในระบบ Sandbox Iframe)
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            startApp();
+        } else {
+            window.addEventListener('load', startApp);
+        }
+
+        /**
+         * ฟังก์ชันตรวจสอบสิทธิ์และเข้าสู่ระบบ (SPA Login Handler)
+         */
+        function handleLogin(event) {
+            event.preventDefault();
+            var email = document.getElementById('login-email').value;
+            var roleSelect = document.getElementById('login-role').value.split('|');
+            var roleCode = roleSelect[0];
+            var roleName = roleSelect[1];
+
+            // อัปเดตข้อมูลผู้ใช้ในแถบ Navbar กลาง
+            document.getElementById('user-display-name').innerText = email.split('@')[0];
+            document.getElementById('user-role').innerText = roleName;
+            document.getElementById('user-avatar').src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(email) + "&background=0b3c5d&color=fff";
+
+            // สลับสถานะการแสดงหน้าจอหลัก
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('main-app-container').style.display = 'block';
+
+            // โหลดโมดูลตรรกะแดชบอร์ด
+            initUI();
+            renderCharts();
+            populateTables();
+
+            // แจ้งเตือนต้อนรับ
+            Swal.fire({
+                icon: 'success',
+                title: 'เข้าสู่ระบบสำเร็จ',
+                text: 'ยินดีต้อนรับผู้ใช้งานบทบาท: ' + roleCode,
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            // บันทึกกิจกรรมลง Log ความมั่นคงปลอดภัย
+            auditLogs.unshift({
+                time: new Date().toTimeString().split(' ')[0],
+                user: roleCode,
+                action: "เข้าสู่ระบบ (Login) ผ่าน Security Portal สำเร็จ"
+            });
+        }
+
+        function initUI() {
+            // ระบบคลิกจัดการเมนู Sidebar (Multi-Tab Routing แบบ Single Page)
+            var menuItems = document.querySelectorAll('.sidebar-item');
+            menuItems.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    menuItems.forEach(function(i) { i.classList.remove('active'); });
+                    this.classList.add('active');
+                    
+                    var tabName = this.getAttribute('data-tab');
+                    showTab(tabName);
+                });
+            });
+        }
+
+        function showTab(tabName) {
+            // ซ่อนทุกหน้าแท็บ
+            var tabs = document.querySelectorAll('.tab-panel');
+            tabs.forEach(function(tab) { tab.classList.add('none', 'd-none'); });
+
+            // แสดงหน้าแท็บที่เลือก
+            var targetTab = document.getElementById('tab-' + tabName);
+            if (targetTab) {
+                targetTab.classList.remove('d-none');
+            }
+
+            // แก้ไขหัวข้อหน้า
+            var pageTitle = document.getElementById('page-title');
+            var titles = {
+                dashboard: "แดชบอร์ดบริหารพัสดุระดับองค์กร",
+                assets: "บัญชีคุมทะเบียนครุภัณฑ์ (Asset Central Registry)",
+                inventory: "ระบบพัสดุและวัสดุคงคลัง (Inventory)",
+                borrow: "โมดูลพัสดุ ยืม-คืน และอนุมัติขอใช้",
+                repair: "งานแจ้งซ่อมบำรุงรักษาและแก้ไขอาการชำรุด",
+                inspection: "การตรวจสอบพัสดุประจำปีตามกฎหมาย",
+                disposal: "การตัดจ่ายพัสดุชำรุดและสูญหายออกจากบัญชี",
+                reports: "ระบบการสร้างรายงานและส่งออกข้อมูลราชการ",
+                settings: "ปรับแต่งระบบสิทธิ์และการกำหนดค่าความปลอดภัย"
+            };
+            pageTitle.innerText = titles[tabName] || "ระบบ AMIS";
+            
+            // ปิดแถบสไลด์ในอุปกรณ์มือถือ
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('active');
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'สลับโหมดการแสดงผลสำเร็จ',
+                showConfirmButton: false,
+                timer: 1500
+            });
+        }
+
+        /*********************************************************************************
+         * DATA POPULATION & CALCULATIONS (STRAIGHT LINE DEPRECIATION)
+         * คำนวณค่าเสื่อมราคาแบบเส้นตรงตามมาตรฐานการบัญชีภาครัฐ
+         *********************************************************************************/
+        function populateTables() {
+            // วาดตารางครุภัณฑ์
+            var assetsTbody = document.getElementById('assets-tbody');
+            assetsTbody.innerHTML = '';
+            
+            var assetsHtml = '';
+            mockAssets.forEach(function(asset, index) {
+                // คำนวณค่าเสื่อมราคารายปีสะสม
+                var currentYear = 2026;
+                var purchaseYear = parseInt(asset.date.split('-')[0]);
+                var ageYears = Math.max(1, currentYear - purchaseYear);
+                
+                // มูลค่าคงเหลือขั้นต่ำสุดตามหลักพัสดุ = 1 บาท
+                var yearlyDep = asset.value / asset.life;
+                var accumulatedDep = yearlyDep * ageYears;
+                if (accumulatedDep >= asset.value) {
+                    accumulatedDep = asset.value - 1;
+                }
+
+                var badgeClass = 'bg-success text-white';
+                if (asset.status.indexOf('ซ่อม') > -1) {
+                    badgeClass = 'bg-warning text-dark';
+                } else if (asset.status.indexOf('ชำรุด') > -1) {
+                    badgeClass = 'bg-danger text-white';
+                }
+
+                assetsHtml += '<tr>';
+                assetsHtml += '<td class="fw-bold text-secondary">' + asset.code + '</td>';
+                assetsHtml += '<td>' + asset.name + '</td>';
+                assetsHtml += '<td><span class="badge bg-secondary">' + asset.category + '</span></td>';
+                assetsHtml += '<td>' + asset.value.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</td>';
+                assetsHtml += '<td>' + asset.date + '</td>';
+                assetsHtml += '<td>' + ageYears + ' / ' + asset.life + ' ปี</td>';
+                assetsHtml += '<td class="text-danger fw-bold">' + accumulatedDep.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</td>';
+                assetsHtml += '<td><span class="badge-status ' + badgeClass + '">' + asset.status + '</span></td>';
+                assetsHtml += '<td>';
+                assetsHtml += '<div class="d-flex justify-content-center gap-1">';
+                assetsHtml += '<button class="btn btn-sm btn-outline-info p-1" onclick="viewQRCode(\'' + asset.code + '\', \'' + asset.name + '\')" title="แสดง QR Code"><i class="fa-solid fa-qrcode"></i></button>';
+                assetsHtml += '<button class="btn btn-sm btn-outline-primary p-1" onclick="editAsset(' + index + ')" title="แก้ไขครุภัณฑ์"><i class="fa-solid fa-pen-to-square"></i></button>';
+                assetsHtml += '<button class="btn btn-sm btn-outline-danger p-1" onclick="deleteAsset(' + index + ')" title="ลบรายการ"><i class="fa-solid fa-trash-can"></i></button>';
+                assetsHtml += '</div>';
+                assetsHtml += '</td>';
+                assetsHtml += '</tr>';
+            });
+            assetsTbody.innerHTML = assetsHtml;
+
+            // วาดประวัติกิจกรรม (Audit Log)
+            var auditLogDiv = document.getElementById('audit-log-list');
+            auditLogDiv.innerHTML = '';
+            var logHtml = '';
+            auditLogs.forEach(function(log) {
+                logHtml += '<div class="list-group-item d-flex justify-content-between align-items-center py-2 px-1">';
+                logHtml += '<div>';
+                logHtml += '<span class="badge bg-primary me-2">' + log.user + '</span>';
+                logHtml += '<small class="text-dark">' + log.action + '</small>';
+                logHtml += '</div>';
+                logHtml += '<small class="text-muted text-xs">' + log.time + '</small>';
+                logHtml += '</div>';
+            });
+            auditLogDiv.innerHTML = logHtml;
+
+            // ตารางพัสดุคงคลัง
+            var invTbody = document.getElementById('inventory-tbody');
+            invTbody.innerHTML = '';
+            var invHtml = '';
+            mockInventory.forEach(function(item) {
+                var qtyClass = item.qty <= item.min ? 'text-danger' : 'text-success';
+                var badgeClass = item.qty <= item.min ? 'bg-danger' : 'bg-success';
+                var badgeText = item.qty <= item.min ? 'จุดจัดซื้อเร่งด่วน' : 'ปกติ';
+
+                invHtml += '<tr>';
+                invHtml += '<td class="fw-bold text-dark">' + item.id + '</td>';
+                invHtml += '<td>' + item.name + '</td>';
+                invHtml += '<td>' + item.category + '</td>';
+                invHtml += '<td class="fw-bold ' + qtyClass + '">' + item.qty + '</td>';
+                invHtml += '<td>' + item.unit + '</td>';
+                invHtml += '<td>' + item.min + '</td>';
+                invHtml += '<td>' + item.price.toFixed(2) + '</td>';
+                invHtml += '<td><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>';
+                invHtml += '<td>';
+                invHtml += '<button class="btn btn-xs btn-outline-danger py-0 px-2" onclick="issueInventory(\'' + item.id + '\', \'' + item.name + '\')">จ่าย</button>';
+                invHtml += '</td>';
+                invHtml += '</tr>';
+            });
+            invTbody.innerHTML = invHtml;
+
+            // ตารางกำหนดการซ่อมบำรุงในแดชบอร์ด
+            var pmTbody = document.getElementById('pm-schedule-tbody');
+            pmTbody.innerHTML = '<tr><td class="fw-bold">7440-001-0001</td><td>ระบบแม่ข่ายหลัก Server Room 1</td><td>25 ก.ค. 2569</td><td>นายวิชาญ (ช่างวิศวกร)</td></tr><tr><td class="fw-bold">2320-005-0001</td><td>รถยนต์ตู้ราชการ 12 ที่นั่ง</td><td>10 ส.ค. 2569</td><td>บริษัท ยนตรการ จำกัด</td></tr>';
+
+            // ดึงข้อมูลในส่วนอื่นๆ มาแสดง
+            populateModuleTables();
+        }
+
+        function populateModuleTables() {
+            // โมดูลยืมคืน
+            var borrowTbody = document.getElementById('borrow-tbody');
+            if (borrowTbody) {
+                borrowTbody.innerHTML = '';
+                var borrowHtml = '';
+                mockBorrow.forEach(function(item, index) {
+                    var statusBadgeClass = item.status === 'คืนแล้ว' ? 'bg-success' : 'bg-warning text-dark';
+                    var btnHtml = item.status === 'กำลังยืม' ? '<button class="btn btn-xs btn-success py-1 px-2 text-xs" onclick="returnAsset(' + index + ')">รับคืนพัสดุ</button>' : '<span class="text-muted text-xs">เสร็จสิ้นภารกิจ</span>';
+
+                    borrowHtml += '<tr>';
+                    borrowHtml += '<td class="fw-bold">' + item.id + '</td>';
+                    borrowHtml += '<td>' + item.assetName + '</td>';
+                    borrowHtml += '<td>' + item.borrower + '</td>';
+                    borrowHtml += '<td>' + item.dept + '</td>';
+                    borrowHtml += '<td>' + item.borrowDate + '</td>';
+                    borrowHtml += '<td>' + item.dueDate + '</td>';
+                    borrowHtml += '<td><span class="badge ' + statusBadgeClass + '">' + item.status + '</span></td>';
+                    borrowHtml += '<td><span class="text-success fw-bold">' + item.approval + '</span></td>';
+                    borrowHtml += '<td>' + btnHtml + '</td>';
+                    borrowHtml += '</tr>';
+                });
+                borrowTbody.innerHTML = borrowHtml;
+            }
+
+            // โมดูลงานแจ้งซ่อม
+            var repairTbody = document.getElementById('repair-tbody');
+            if (repairTbody) {
+                repairTbody.innerHTML = '';
+                var repairHtml = '';
+                mockRepair.forEach(function(item, index) {
+                    var statusBadgeClass = item.status === 'ซ่อมเสร็จสิ้น' ? 'bg-success' : 'bg-warning text-dark';
+                    var btnHtml = item.status !== 'ซ่อมเสร็จสิ้น' ? '<button class="btn btn-xs btn-success py-1 px-2 text-xs" onclick="completeRepair(' + index + ')">ส่งมอบงานซ่อม</button>' : '<i class="fa-solid fa-circle-check text-success"></i>';
+
+                    repairHtml += '<tr>';
+                    repairHtml += '<td class="fw-bold">' + item.id + '</td>';
+                    repairHtml += '<td>' + item.assetName + '</td>';
+                    repairHtml += '<td>' + item.symptom + '</td>';
+                    repairHtml += '<td><span class="badge bg-danger">' + item.level + '</span></td>';
+                    repairHtml += '<td>' + item.requester + '</td>';
+                    repairHtml += '<td>' + item.cost.toLocaleString() + '</td>';
+                    repairHtml += '<td><span class="badge ' + statusBadgeClass + '">' + item.status + '</span></td>';
+                    repairHtml += '<td>' + item.date + '</td>';
+                    repairHtml += '<td>' + btnHtml + '</td>';
+                    repairHtml += '</tr>';
+                });
+                repairTbody.innerHTML = repairHtml;
+            }
+
+            // ตรวจสอบประจำปี
+            var insTbody = document.getElementById('inspection-tbody');
+            if (insTbody) {
+                insTbody.innerHTML = '';
+                var insHtml = '';
+                mockInspection.forEach(function(item) {
+                    insHtml += '<tr>';
+                    insHtml += '<td class="fw-bold">พ.ศ. ' + item.id + '</td>';
+                    insHtml += '<td>' + item.total + ' รายการ</td>';
+                    insHtml += '<td>ผ่านเกณฑ์ 100%</td>';
+                    insHtml += '<td>ชำรุดรอซ่อม 1 รายการ</td>';
+                    insHtml += '<td><span class="badge bg-success">' + item.status + '</span></td>';
+                    insHtml += '<td>' + item.committee + '</td>';
+                    insHtml += '<td><span class="text-success fw-bold"><i class="fa-solid fa-signature"></i> ' + item.signature + '</span></td>';
+                    insHtml += '<td><button class="btn btn-sm btn-outline-danger" onclick="viewInspectionReportPDF()"><i class="fa-solid fa-file-pdf"></i> PDF สรุป</button></td>';
+                    insHtml += '</tr>';
+                });
+                insTbody.innerHTML = insHtml;
+            }
+
+            // จำหน่ายพัสดุ
+            var dispTbody = document.getElementById('disposal-tbody');
+            if (dispTbody) {
+                dispTbody.innerHTML = '';
+                var dispHtml = '';
+                mockDisposal.forEach(function(item) {
+                    dispHtml += '<tr>';
+                    dispHtml += '<td class="fw-bold">' + item.id + '</td>';
+                    dispHtml += '<td>' + item.assetCode + '</td>';
+                    dispHtml += '<td>' + item.assetName + '</td>';
+                    dispHtml += '<td><span class="badge bg-dark">' + item.method + '</span></td>';
+                    dispHtml += '<td>' + item.reason + '</td>';
+                    dispHtml += '<td>' + item.scrapValue.toLocaleString() + '</td>';
+                    dispHtml += '<td>' + item.date + '</td>';
+                    dispHtml += '<td><span class="badge bg-success">' + item.status + '</span></td>';
+                    dispHtml += '<td><button class="btn btn-xs btn-outline-secondary py-1" onclick="viewDisposalDocs()"><i class="fa-solid fa-paperclip"></i> ลว. 6901</button></td>';
+                    dispHtml += '</tr>';
+                });
+                dispTbody.innerHTML = dispHtml;
+            }
+        }
+
+        /*********************************************************************************
+         * INTERACTIVE CHART ENGINE (CHART.JS)
+         *********************************************************************************/
+        var chartValue, chartStatus;
+
+        function renderCharts() {
+            // ล้างกราฟเก่าก่อนวาดใหม่ (เพื่อไม่ให้เกิดการวาดทับซ้อน)
+            if (chartValue) chartValue.destroy();
+            if (chartStatus) chartStatus.destroy();
+
+            // กราฟที่ 1: แผนภูมิแท่ง แสดงมูลค่าตามประเภทครุภัณฑ์
+            var ctxValue = document.getElementById('chart-asset-value').getContext('2d');
+            chartValue = new Chart(ctxValue, {
+                type: 'bar',
+                data: {
+                    labels: ['ครุภัณฑ์คอมพิวเตอร์', 'ครุภัณฑ์สำนักงาน', 'ครุภัณฑ์ยานพาหนะ'],
+                    datasets: [{
+                        label: 'มูลค่ารวมตามราคาจัดซื้อ (บาท)',
+                        data: [335500, 51700, 1225000],
+                        backgroundColor: [
+                            'rgba(11, 60, 93, 0.85)',
+                            'rgba(50, 140, 193, 0.85)',
+                            'rgba(217, 179, 16, 0.85)'
+                        ],
+                        borderColor: [
+                            '#0b3c5d',
+                            '#328cc1',
+                            '#d9b310'
+                        ],
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return value.toLocaleString() + ' ฿'; }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // กราฟที่ 2: แผนภูมิวงกลม แสดงสัดส่วนสถานะการตรวจพัสดุ
+            var ctxStatus = document.getElementById('chart-asset-status').getContext('2d');
+            chartStatus = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ปกติพร้อมใช้', 'อยู่ระหว่างส่งซ่อม', 'ชำรุดรอแทงจำหน่าย'],
+                    datasets: [{
+                        data: [8, 1, 1],
+                        backgroundColor: [
+                            '#2ecc71',
+                            '#f1c40f',
+                            '#e74c3c'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        /*********************************************************************************
+         * ASSET MODULE INTERACTIONS
+         * ระบบการจัดการครุภัณฑ์: ขึ้นทะเบียน, สแกนรหัส และคำนวณสถิติ
+         *********************************************************************************/
+        function showAssetAddModal() {
+            document.getElementById('asset-form').reset();
+            document.getElementById('form-asset-id-internal').value = '';
+            document.getElementById('assetModalTitle').innerHTML = '<i class="fa-solid fa-cube me-2"></i>ขึ้นทะเบียนครุภัณฑ์ใหม่';
+            
+            // ตั้งค่าวันที่จัดซื้อให้เป็นวันปัจจุบันโดยเริ่มต้น
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById('form-asset-date').value = today;
+
+            var myModal = new bootstrap.Modal(document.getElementById('assetFormModal'));
+            myModal.show();
+        }
+
+        function editAsset(index) {
+            var asset = mockAssets[index];
+            document.getElementById('form-asset-id-internal').value = index;
+            document.getElementById('form-asset-code').value = asset.code;
+            document.getElementById('form-asset-name').value = asset.name;
+            document.getElementById('form-asset-category').value = asset.category;
+            document.getElementById('form-asset-value').value = asset.value;
+            document.getElementById('form-asset-date').value = asset.date;
+            document.getElementById('form-asset-life').value = asset.life;
+            document.getElementById('form-asset-location').value = asset.location;
+            document.getElementById('form-asset-status').value = asset.status;
+
+            document.getElementById('assetModalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square me-2"></i>แก้ไขรายละเอียดครุภัณฑ์';
+            
+            var myModal = new bootstrap.Modal(document.getElementById('assetFormModal'));
+            myModal.show();
+        }
+
+        function saveAssetItem(event) {
+            event.preventDefault();
+            var idInternal = document.getElementById('form-asset-id-internal').value;
+            var code = document.getElementById('form-asset-code').value;
+            var name = document.getElementById('form-asset-name').value;
+            var category = document.getElementById('form-asset-category').value;
+            var value = parseFloat(document.getElementById('form-asset-value').value);
+            var date = document.getElementById('form-asset-date').value;
+            var life = parseInt(document.getElementById('form-asset-life').value);
+            var location = document.getElementById('form-asset-location').value;
+            var status = document.getElementById('form-asset-status').value;
+
+            if (idInternal === '') {
+                // เพิ่มครุภัณฑ์ชิ้นใหม่ลงฐานข้อมูล
+                var newId = (mockAssets.length + 1).toString();
+                mockAssets.push({ id: newId, code: code, name: name, category: category, value: value, date: date, life: life, location: location, status: status });
+                
+                // บันทึกกิจกรรมลง Log
+                auditLogs.unshift({
+                    time: new Date().toTimeString().split(' ')[0],
+                    user: "Asset Officer",
+                    action: "ขึ้นทะเบียนครุภัณฑ์ใหม่ รหัส " + code + " (" + name + ")"
+                });
+
+                Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ขึ้นทะเบียนครุภัณฑ์เรียบร้อยแล้ว!' });
+            } else {
+                // อัปเดตข้อมูลพัสดุเดิม
+                mockAssets[idInternal] = { id: (parseInt(idInternal) + 1).toString(), code: code, name: name, category: category, value: value, date: date, life: life, location: location, status: status };
+                
+                auditLogs.unshift({
+                    time: new Date().toTimeString().split(' ')[0],
+                    user: "Asset Officer",
+                    action: "แก้ไขรายละเอียดครุภัณฑ์ รหัส " + code
+                });
+
+                Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ', text: 'ปรับปรุงรายละเอียดข้อมูลแล้ว!' });
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('assetFormModal')).hide();
+            populateTables();
+            updateKPIs();
+        }
+
+        function deleteAsset(index) {
+            var asset = mockAssets[index];
+            Swal.fire({
+                title: 'ยืนยันการลบครุภัณฑ์?',
+                text: "คุณกำลังจะลบ \"" + asset.name + "\" ออกจากระบบ",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ฉันต้องการลบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Admin",
+                        action: "ลบครุภัณฑ์รหัส " + asset.code + " ออกจากระบบ"
+                    });
+
+                    mockAssets.splice(index, 1);
+                    populateTables();
+                    updateKPIs();
+                    Swal.fire('ลบข้อมูลเรียบร้อย', 'ข้อมูลถูกตัดออกระบบฐานข้อมูลแล้ว', 'success');
+                }
+            });
+        }
+
+        function filterAssetsTable() {
+            var searchVal = document.getElementById('asset-search').value.toLowerCase();
+            var catVal = document.getElementById('asset-filter-category').value;
+            var statusVal = document.getElementById('asset-filter-status').value;
+
+            var filtered = mockAssets.filter(function(item) {
+                var matchesSearch = item.code.toLowerCase().includes(searchVal) || item.name.toLowerCase().includes(searchVal) || item.location.toLowerCase().includes(searchVal);
+                var matchesCat = catVal === "" || item.category === catVal;
+                var matchesStatus = statusVal === "" || item.status === statusVal;
+                return matchesSearch && matchesCat && matchesStatus;
+            });
+
+            var assetsTbody = document.getElementById('assets-tbody');
+            assetsTbody.innerHTML = '';
+            var assetsHtml = '';
+            filtered.forEach(function(asset, index) {
+                var badgeClass = 'bg-success text-white';
+                if (asset.status.indexOf('ซ่อม') > -1) {
+                    badgeClass = 'bg-warning text-dark';
+                } else if (asset.status.indexOf('ชำรุด') > -1) {
+                    badgeClass = 'bg-danger text-white';
+                }
+
+                assetsHtml += '<tr>';
+                assetsHtml += '<td class="fw-bold text-secondary">' + asset.code + '</td>';
+                assetsHtml += '<td>' + asset.name + '</td>';
+                assetsHtml += '<td><span class="badge bg-secondary">' + asset.category + '</span></td>';
+                assetsHtml += '<td>' + asset.value.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + '</td>';
+                assetsHtml += '<td>' + asset.date + '</td>';
+                assetsHtml += '<td>5 / ' + asset.life + ' ปี</td>';
+                assetsHtml += '<td class="text-danger fw-bold">' + (asset.value * 0.4).toLocaleString() + '</td>';
+                assetsHtml += '<td><span class="badge-status ' + badgeClass + '">' + asset.status + '</span></td>';
+                assetsHtml += '<td>';
+                assetsHtml += '<div class="d-flex justify-content-center gap-1">';
+                assetsHtml += '<button class="btn btn-sm btn-outline-info p-1" onclick="viewQRCode(\'' + asset.code + '\', \'' + asset.name + '\')"><i class="fa-solid fa-qrcode"></i></button>';
+                assetsHtml += '<button class="btn btn-sm btn-outline-primary p-1" onclick="editAsset(' + index + ')"><i class="fa-solid fa-pen-to-square"></i></button>';
+                assetsHtml += '<button class="btn btn-sm btn-outline-danger p-1" onclick="deleteAsset(' + index + ')"><i class="fa-solid fa-trash-can"></i></button>';
+                assetsHtml += '</div>';
+                assetsHtml += '</td>';
+                assetsHtml += '</tr>';
+            });
+            assetsTbody.innerHTML = assetsHtml;
+        }
+
+        function clearFilters() {
+            document.getElementById('asset-search').value = '';
+            document.getElementById('asset-filter-category').value = '';
+            document.getElementById('asset-filter-status').value = '';
+            filterAssetsTable();
+        }
+
+        function updateKPIs() {
+            var totalAssets = mockAssets.length;
+            var totalValue = mockAssets.reduce(function(sum, item) { return sum + item.value; }, 0);
+            
+            document.getElementById('kpi-total-assets').innerText = totalAssets;
+            document.getElementById('kpi-total-value').innerText = (totalValue / 1000000).toFixed(1) + "M";
+            
+            renderCharts();
+        }
+
+        /*********************************************************************************
+         * QR CODE GENERATOR & SCANNER UTILITY
+         * การสแกนบาร์โค้ด และสร้าง QR Code ปลายทางครุภัณฑ์ภาครัฐ
+         *********************************************************************************/
+        function viewQRCode(code, name) {
+            document.getElementById('qr-view-name').innerText = name;
+            document.getElementById('qr-view-code').innerText = code;
+            
+            // ใช้ API ของ Google Chart ในการสร้าง QR Code แบบพรีเมียม
+            var qrUrl = "https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=" + encodeURIComponent(code) + "&choe=UTF-8";
+            document.getElementById('qr-view-img').src = qrUrl;
+
+            var qrModal = new bootstrap.Modal(document.getElementById('qrViewerModal'));
+            qrModal.show();
+        }
+
+        function startQRScanner() {
+            var scannerModal = new bootstrap.Modal(document.getElementById('qrScannerModal'));
+            scannerModal.show();
+
+            // จำลองการสแกนด้วยกล้อง (จะป้อนข้อมูลอัตโนมัติหลังจากรอ 2 วินาที)
+            var readerDiv = document.getElementById('qr-reader');
+            readerDiv.innerHTML = '<div class="spinner-border text-primary" role="status"></div><div class="small mt-2 text-primary">เปิดกล้องอ่านค่าคิวอาร์สำเร็จ...</div>';
+            
+            setTimeout(function() {
+                var randomAsset = mockAssets[Math.floor(Math.random() * mockAssets.length)];
+                readerDiv.innerHTML = '<div class="text-success"><i class="fa-solid fa-circle-check fa-3x mb-2"></i></div><div class="small fw-bold text-success">สแกนรหัสพัสดุสำเร็จ!</div><div class="badge bg-dark mt-1">' + randomAsset.code + '</div>';
+                document.getElementById('manual-qr-code').value = randomAsset.code;
+            }, 2200);
+        }
+
+        function submitManualCode() {
+            var code = document.getElementById('manual-qr-code').value;
+            var asset = mockAssets.find(function(a) { return a.code === code; });
+            bootstrap.Modal.getInstance(document.getElementById('qrScannerModal')).hide();
+
+            if (asset) {
+                var detailsHtml = '<div class="text-start">';
+                detailsHtml += '<p><b>รหัส:</b> ' + asset.code + '</p>';
+                detailsHtml += '<p><b>ชื่อ:</b> ' + asset.name + '</p>';
+                detailsHtml += '<p><b>ประเภท:</b> ' + asset.category + '</p>';
+                detailsHtml += '<p><b>ที่ตั้ง:</b> ' + asset.location + '</p>';
+                detailsHtml += '<p><b>สถานะ:</b> ' + asset.status + '</p>';
+                detailsHtml += '</div>';
+
+                Swal.fire({
+                    title: 'พบข้อมูลครุภัณฑ์!',
+                    html: detailsHtml,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'แจ้งอาการชำรุด/ซ่อม',
+                    cancelButtonText: 'ปิดหน้านี้'
+                }).then(function(res) {
+                    if (res.isConfirmed) {
+                        showTab('repair');
+                    }
+                });
+            } else {
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสครุภัณฑ์นี้ในสารบบ', 'error');
+            }
+        }
+
+        /*********************************************************************************
+         * GOVERNMENT EXPORT SYSTEM (REPORTS & EXCEL)
+         *********************************************************************************/
+        function exportToExcel(type) {
+            Swal.fire({
+                title: 'เตรียมส่งออกข้อมูลแบบตาราง',
+                text: "ระบบกำลังรวบรวมฟิลด์และเรียงลำดับดัชนีเป็นไฟล์ Excel (.xlsx)",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันเพื่อดาวน์โหลด'
+            }).then(function(res) {
+                if (res.isConfirmed) {
+                    Swal.fire('ดาวน์โหลดสำเร็จ', 'ไฟล์สเปรดชีตจัดส่งทางเบราว์เซอร์แล้ว', 'success');
+                }
+            });
+        }
+
+        function exportToPDF(type) {
+            Swal.fire({
+                title: 'กำลังแปลงหน้าเป็นแบบฟอร์มราชการ (PDF)',
+                text: 'การคำนวณหน้าจะปรับความกว้างให้พอดีกับกระดาษขนาด A4 ลู่ตามแนวนอน',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'พิมพ์ / เซฟ PDF'
+            }).then(function(res) {
+                if (res.isConfirmed) {
+                    window.print();
+                }
+            });
+        }
+
+        // รายงานเชิงลึก
+        function switchReportCategory(cat) {
+            var title = document.getElementById('report-category-title');
+            var list = document.getElementById('report-items-list');
+            var itemsHtml = '';
+            
+            if (cat === 'reg') {
+                title.innerText = 'หมวดทะเบียนพัสดุและทรัพย์สิน';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>1. ทะเบียนคุมครุภัณฑ์ประจำปี (ตาม พ.ร.บ. 2560)</span><button class="btn btn-sm btn-primary" onclick="generateReport(\'asset_register\')">ดาวน์โหลดไฟล์ PDF</button></li>';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>2. รายงานสรุปยอดมูลค่าครุภัณฑ์รายประเภท</span><button class="btn btn-sm btn-success" onclick="generateReport(\'asset_summary_excel\')">ดาวน์โหลด Excel</button></li>';
+            } else if (cat === 'dep') {
+                title.innerText = 'หมวดรายงานการคำนวณค่าเสื่อมราคา';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>1. ทะเบียนคำนวณค่าเสื่อมราคาแยกตามหน่วยต้นทุน</span><button class="btn btn-sm btn-primary" onclick="generateReport(\'dep_cost\')">ดาวน์โหลด PDF</button></li>';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>2. รายการจำลองการวิเคราะห์อายุไขครุภัณฑ์ที่ครบวาระ</span><button class="btn btn-sm btn-success" onclick="generateReport(\'dep_forecast\')">ดาวน์โหลด Excel</button></li>';
+            } else {
+                title.innerText = 'หมวดรายงานการดำเนินงาน (ยืม/ซ่อม)';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>1. สรุปรายการยืมพัสดุราชการค้างส่งเกินกำหนด</span><button class="btn btn-sm btn-danger" onclick="generateReport(\'borrow_overdue\')">พิมพ์รายงานด่วน</button></li>';
+                itemsHtml += '<li class="d-flex justify-content-between align-items-center p-2 border-bottom"><span>2. สรุปประวัติการเข้าซ่อมแซมและตรวจสอบครุภัณฑ์รายบุคคล</span><button class="btn btn-sm btn-primary" onclick="generateReport(\'repair_history\')">เปิดดู PDF</button></li>';
+            }
+            list.innerHTML = itemsHtml;
+        }
+
+        function generateReport(reportName) {
+            Swal.fire({
+                title: 'ประมวลผลระบบรายงานสำเร็จ',
+                text: "รายงานรหัส [" + reportName + "] ได้จัดเตรียมเสร็จสิ้นพร้อมจัดส่งเข้า Google Drive ของคุณแล้ว",
+                icon: 'success'
+            });
+        }
+
+        function simulateBackup() {
+            Swal.fire({
+                title: 'ยืนยันการสำรองฐานข้อมูลพัสดุ?',
+                text: 'ระบบจะส่งออกสำเนาโครงสร้างตาราง AMIS ออกเป็นไฟล์ใหม่บน Google Drive ส่วนกลาง',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'เริ่มสำรองทันที'
+            }).then(function(res) {
+                if (res.isConfirmed) {
+                    Swal.fire('การสำรองสำเร็จ!', 'รหัสไฟล์สำเนา: BACKUP-AMIS-20260703-SECURE', 'success');
+                }
+            });
+        }
+
+        /**
+         * ฟังก์ชันตัดเซสชันและออกจากระบบโดยปลอดภัย (SPA Secure Logout)
+         */
+        function logout() {
+            Swal.fire({
+                title: 'ยืนยันการออกจากระบบ?',
+                text: 'คุณต้องการสิ้นสุดเซสชันการบริหารงานพัสดุในปัจจุบันและกลับไปยังหน้าล็อกอินเพื่อความปลอดภัยหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ออกจากระบบ',
+                cancelButtonText: 'ยกเลิก'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    // ทำความสะอาดระบบแสดงผลสิทธิ์
+                    document.getElementById('login-form').reset();
+                    
+                    // ซ่อนหน้าแอปหลักและกลับคืนหน้าล็อกอินแบบปลอดภัย (SPA State Transition)
+                    document.getElementById('main-app-container').style.display = 'none';
+                    document.getElementById('login-container').style.display = 'flex';
+
+                    // สลับ Active Tab กลับไปที่แดชบอร์ดหลักเผื่อผู้ใช้คนถัดไปล็อกอินเข้าใหม่
+                    var menuItems = document.querySelectorAll('.sidebar-item');
+                    menuItems.forEach(function(i) { i.classList.remove('active'); });
+                    if(menuItems[0]) menuItems[0].classList.add('active');
+                    showTab('dashboard');
+
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'ออกจากระบบเรียบร้อย',
+                        text: 'ท่านได้สิ้นสุดเซสชันระบบสารสนเทศ AMIS เรียบร้อยแล้ว',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        /*********************************************************************************
+         * GOVERNMENT SPECIFIC MODULES (BORROW, REPAIR, INSPECTION, INVENTORY, DISPOSAL)
+         * ฟังก์ชันตรวจสอบระบบและปุ่มกดเพื่อแก้ไข ReferenceError ทั้งปวง
+         *********************************************************************************/
+
+        // 1. ฟังก์ชันแสดงประวัติการตรวจสอบในระบบ PDF
+        function viewInspectionReportPDF() {
+            var detailsHtml = '<div class="text-start">';
+            detailsHtml += '<p class="mb-2"><b>รายงานสรุปประจำปีงบประมาณ:</b> พ.ศ. 2568</p>';
+            detailsHtml += '<p class="mb-2"><b>จำนวนครุภัณฑ์ทั้งหมด:</b> 10 รายการคุมทรัพย์สิน</p>';
+            detailsHtml += '<p class="mb-2"><b>ผลสัมฤทธิ์:</b> ปกติพร้อมใช้งาน 9 รายการ, ชำรุดทรวนโทรม 1 รายการ</p>';
+            detailsHtml += '<p class="mb-2"><b>คณะกรรมการผู้ลงนาม:</b> นายเอกชัย สมบูรณ์ดี, นางสาวพรทิพย์ สุขใจ</p>';
+            detailsHtml += '<hr>';
+            detailsHtml += '<p class="text-center text-muted small"><i class="fa-solid fa-lock me-1"></i> เข้ารหัสรักษาความปลอดภัยทางเทคนิค SHA-256</p>';
+            detailsHtml += '</div>';
+
+            Swal.fire({
+                title: 'รายงานการตรวจสอบพัสดุประจำปี',
+                html: detailsHtml,
+                icon: 'info',
+                confirmButtonText: 'ดาวน์โหลดไฟล์สรุปทางการ (PDF)'
+            });
+        }
+
+        // 2. ฟังก์ชันแสดงประวัติเอกสารการแทงจำหน่ายชำรุดทรุดโทรม
+        function viewDisposalDocs() {
+            var detailsHtml = '<div class="text-start">';
+            detailsHtml += '<p class="mb-2"><b>เลขที่หนังสือเสนอคำร้อง:</b> AMIS-DIS-2026/001</p>';
+            detailsHtml += '<p class="mb-2"><b>รายการ:</b> เครื่องทำน้ำเย็นแสตนเลส 3 หัวต่อ</p>';
+            detailsHtml += '<p class="mb-2"><b>มติวิเคราะห์:</b> ประเมินราคาซ่อมไม่คุ้มค่า แทงจำหน่ายเป็นซากเศษวัสดุ</p>';
+            detailsHtml += '<p class="mb-2"><b>ราคาซากประมูลได้:</b> 500.00 บาท</p>';
+            detailsHtml += '<p class="mb-2"><b>สถานะดำเนินการ:</b> ส่งมอบกองคลังเพื่อทำลายบัญชีแล้ว</p>';
+            detailsHtml += '</div>';
+
+            Swal.fire({
+                title: 'เอกสารแทงจำหน่าย ลว. 6901',
+                html: detailsHtml,
+                icon: 'success',
+                confirmButtonText: 'ปิดหน้านี้'
+            });
+        }
+
+        // 3. ฟังก์ชันรับคืนพัสดุ ยืม-คืน
+        function returnAsset(index) {
+            Swal.fire({
+                title: 'ยืนยันการรับคืนพัสดุนี้?',
+                text: "คุณต้องการตรวจสอบสภาพและรับคืน \"" + mockBorrow[index].assetName + "\" จากผู้ยืม?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ยืนยันรับคืน',
+                cancelButtonText: 'ยกเลิก'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    mockBorrow[index].status = 'คืนแล้ว';
+                    populateTables();
+                    
+                    // บันทึก Log
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "รับคืนพัสดุ: " + mockBorrow[index].assetName
+                    });
+                    
+                    Swal.fire('รับคืนสำเร็จ', 'ปรับปรุงสถานะการส่งคืนของพัสดุในระบบแล้ว', 'success');
+                }
+            });
+        }
+
+        // 4. ฟังก์ชันส่งมอบงานแจ้งซ่อมบำรุงรักษาสำเร็จ
+        function completeRepair(index) {
+            Swal.fire({
+                title: 'ตรวจรับงานซ่อมแซมสำเร็จ?',
+                text: "คุณยืนยันการตรวจรับมอบงานซ่อมของ \"" + mockRepair[index].assetName + "\" หรือไม่?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2ecc71',
+                confirmButtonText: 'ใช่, ตรวจรับสำเร็จ',
+                cancelButtonText: 'ยกเลิก'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    mockRepair[index].status = 'ซ่อมเสร็จสิ้น';
+                    
+                    // ปรับสถานะครุภัณฑ์ในตารางหลักให้กลับมาปกติพร้อมใช้
+                    var assetObj = mockAssets.find(function(a) { return a.name === mockRepair[index].assetName; });
+                    if (assetObj) {
+                        assetObj.status = "ปกติ / ใช้งานได้ดี";
+                    }
+                    
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "ตรวจรับงานซ่อมครุภัณฑ์: " + mockRepair[index].assetName
+                    });
+                    
+                    Swal.fire('ตรวจรับสำเร็จ', 'ครุภัณฑ์กลับคืนสู่สถานะพร้อมใช้งานปกติแล้ว', 'success');
+                }
+            });
+        }
+
+        // 5. ฟังก์ชันเปิดหน้าต่างรับพัสดุเข้าคลัง (Receive Modal)
+        function showAddInventoryModal() {
+            var formHtml = '<div class="text-start">';
+            formHtml += '<label class="form-label mt-2">ชื่อวัสดุพัสดุ</label>';
+            formHtml += '<input id="inv-name" class="form-control mb-2" placeholder="ตัวอย่าง: แฟ้มเสนอเซ็นกระดาษแข็ง">';
+            formHtml += '<label class="form-label">หมวดหมู่พัสดุ</label>';
+            formHtml += '<select id="inv-cat" class="form-select mb-2">';
+            formHtml += '<option value="วัสดุสำนักงาน">วัสดุสำนักงาน</option>';
+            formHtml += '<option value="วัสดุคอมพิวเตอร์">วัสดุคอมพิวเตอร์</option>';
+            formHtml += '<option value="วัสดุงานครัว/งานบ้าน">วัสดุงานครัว/งานบ้าน</option>';
+            formHtml += '</select>';
+            formHtml += '<div class="row">';
+            formHtml += '<div class="col-6">';
+            formHtml += '<label class="form-label">จำนวนรับ</label>';
+            formHtml += '<input id="inv-qty" type="number" class="form-control mb-2" value="50">';
+            formHtml += '</div>';
+            formHtml += '<div class="col-6">';
+            formHtml += '<label class="form-label">หน่วยนับ</label>';
+            formHtml += '<input id="inv-unit" class="form-control mb-2" value="เล่ม">';
+            formHtml += '</div>';
+            formHtml += '</div>';
+            formHtml += '<label class="form-label">ราคารับต่อหน่วย (บาท)</label>';
+            formHtml += '<input id="inv-price" type="number" class="form-control" value="85.00">';
+            formHtml += '</div>';
+
+            Swal.fire({
+                title: 'นำเข้าวัสดุพัสดุสิ้นเปลืองใหม่',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันรับเข้า',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: function() {
+                    var name = document.getElementById('inv-name').value;
+                    var category = document.getElementById('inv-cat').value;
+                    var qty = parseInt(document.getElementById('inv-qty').value);
+                    var unit = document.getElementById('inv-unit').value;
+                    var price = parseFloat(document.getElementById('inv-price').value);
+
+                    if (!name) {
+                        Swal.showValidationMessage('กรุณาระบุชื่อพัสดุ');
+                    }
+                    return { name: name, category: category, qty: qty, unit: unit, price: price };
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var data = result.value;
+                    var newId = "P00" + (mockInventory.length + 1);
+                    mockInventory.push({
+                        id: newId,
+                        name: data.name,
+                        category: data.category,
+                        qty: data.qty,
+                        unit: data.unit,
+                        min: 15,
+                        price: data.price,
+                        status: "ปกติ"
+                    });
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "นำเข้าพัสดุสิ้นเปลือง: " + data.name + " จำนวน " + data.qty + " " + data.unit
+                    });
+                    
+                    Swal.fire('สำเร็จ', 'นำพัสดุเข้าคลังเก็บเรียบร้อยแล้ว', 'success');
+                }
+            });
+        }
+
+        // 6. ฟังก์ชันสร้างคำร้องใบยืมครุภัณฑ์ใหม่
+        function showBorrowModal() {
+            var optionsHtml = '';
+            mockAssets.filter(function(a) { return a.status === "ปกติ / ใช้งานได้ดี"; }).forEach(function(a) {
+                optionsHtml += '<option value="' + a.name + '">' + a.name + ' (' + a.code + ')</option>';
+            });
+
+            var formHtml = '<div class="text-start">';
+            formHtml += '<label class="form-label mt-2">เลือกครุภัณฑ์ที่ต้องการยืม</label>';
+            formHtml += '<select id="borrow-asset-sel" class="form-select mb-2">' + optionsHtml + '</select>';
+            formHtml += '<label class="form-label">ชื่อผู้ขออนุมัติยืม</label>';
+            formHtml += '<input id="borrower-name" class="form-control mb-2" value="นายสมศักดิ์ ขยันงาน">';
+            formHtml += '<label class="form-label">หน่วยงานสังกัดผู้ยืม</label>';
+            formHtml += '<input id="borrower-dept" class="form-control mb-2" value="ฝ่ายเทคโนโลยีสารสนเทศ">';
+            formHtml += '<label class="form-label">กำหนดส่งคืนภายในวันที่</label>';
+            formHtml += '<input id="borrower-date" type="date" class="form-control" value="2026-07-20">';
+            formHtml += '</div>';
+
+            Swal.fire({
+                title: 'สร้างใบอนุญาตยืมพัสดุราชการ',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'เสนอคำร้องขออนุญาต',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: function() {
+                    var assetName = document.getElementById('borrow-asset-sel').value;
+                    var borrower = document.getElementById('borrower-name').value;
+                    var dept = document.getElementById('borrower-dept').value;
+                    var dueDate = document.getElementById('borrower-date').value;
+                    return { assetName: assetName, borrower: borrower, dept: dept, dueDate: dueDate };
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var data = result.value;
+                    var newId = "BR-690" + (mockBorrow.length + 1);
+                    mockBorrow.unshift({
+                        id: newId,
+                        assetName: data.assetName,
+                        borrower: data.borrower,
+                        dept: data.dept,
+                        borrowDate: new Date().toISOString().split('T')[0],
+                        dueDate: data.dueDate,
+                        status: "กำลังยืม",
+                        approval: "อนุมัติแล้ว"
+                    });
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "อนุมัติคำร้องขออนุญาตยืมใบเลขที่: " + newId
+                    });
+                    
+                    Swal.fire('อนุมัติสำเร็จ', 'บันทึกใบยืมพร้อมสร้างระบบรายงานผู้ควบคุมเรียบร้อย', 'success');
+                }
+            });
+        }
+
+        // 7. ฟังก์ชันเปิดหน้าต่างแจ้งรายงานอาการชำรุดครุภัณฑ์ (Repair Modal)
+        function showRepairRequestModal() {
+            var optionsHtml = '';
+            mockAssets.forEach(function(a) {
+                optionsHtml += '<option value="' + a.name + '">' + a.name + ' (' + a.code + ')</option>';
+            });
+
+            var formHtml = '<div class="text-start">';
+            formHtml += '<label class="form-label mt-2">เลือกครุภัณฑ์ที่ชำรุด</label>';
+            formHtml += '<select id="repair-asset-sel" class="form-select mb-2">' + optionsHtml + '</select>';
+            formHtml += '<label class="form-label">อาการชำรุดที่ตรวจพบ</label>';
+            formHtml += '<textarea id="repair-symptom" class="form-control mb-2" rows="2" placeholder="กรุณาอธิบายอาการชำรุดโดยละเอียด"></textarea>';
+            formHtml += '<label class="form-label">ความเร่งด่วน</label>';
+            formHtml += '<select id="repair-level" class="form-select mb-2">';
+            formHtml += '<option value="เร่งด่วน">เร่งด่วน</option>';
+            formHtml += '<option value="ด่วนที่สุด">ด่วนที่สุด</option>';
+            formHtml += '<option value="ปกติ">ปกติ</option>';
+            formHtml += '</select>';
+            formHtml += '<label class="form-label">ผู้เสนอรายงาน</label>';
+            formHtml += '<input id="repair-requester" class="form-control" value="นายเจษฎา มั่นใจ">';
+            formHtml += '</div>';
+
+            Swal.fire({
+                title: 'แบบฟอร์มรายงานอาการชำรุดครุภัณฑ์',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'ส่งเรื่องพิจารณาแจ้งซ่อม',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: function() {
+                    var assetName = document.getElementById('repair-asset-sel').value;
+                    var symptom = document.getElementById('repair-symptom').value;
+                    var level = document.getElementById('repair-level').value;
+                    var requester = document.getElementById('repair-requester').value;
+
+                    if (!symptom) {
+                        Swal.showValidationMessage('กรุณาระบุอาการชำรุดที่พบ');
+                    }
+                    return { assetName: assetName, symptom: symptom, level: level, requester: requester };
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var data = result.value;
+                    var newId = "RP-690" + (mockRepair.length + 1);
+                    mockRepair.unshift({
+                        id: newId,
+                        assetName: data.assetName,
+                        symptom: data.symptom,
+                        level: data.level,
+                        requester: data.requester,
+                        cost: 0.00,
+                        status: "กำลังซ่อมแซม",
+                        date: new Date().toISOString().split('T')[0]
+                    });
+                    
+                    // ปรับสถานะครุภัณฑ์ในระบบตารางหลัก
+                    var assetObj = mockAssets.find(function(a) { return a.name === data.assetName; });
+                    if (assetObj) {
+                        assetObj.status = "อยู่ระหว่างซ่อม";
+                    }
+                    
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "System",
+                        action: "สร้างใบแจ้งซ่อมครุภัณฑ์ รหัสใบซ่อม: " + newId
+                    });
+                    
+                    Swal.fire('เสนอเรื่องสำเร็จ', 'ระบบได้ทำการส่งรายงานเข้าคิวพัสดุและวิศวกรซ่อมบำรุงแล้ว', 'success');
+                }
+            });
+        }
+
+        // 8. ฟังก์ชันเริ่มเปิดรอบวงโคจรตรวจสอบพัสดุประจำปี (ตามกฎหมายพัสดุ)
+        function startAnnualInspectionCycle() {
+            Swal.fire({
+                title: 'เปิดรอบการตรวจนับและสรุปพัสดุประจำปี?',
+                text: "ตามมาตรา 113 แห่ง พ.ร.บ. จัดซื้อจัดจ้างฯ พ.ศ. 2560 ต้องตั้งกรรมการเพื่อจัดทำรายงานและส่งผู้บริหารภายใน 30 วัน",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#0b3c5d',
+                confirmButtonText: 'เริ่มสุ่มเปิดรอบระบบประจำปี',
+                cancelButtonText: 'ยกเลิก'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var newYear = (parseInt(mockInspection[0].id) + 1).toString();
+                    mockInspection.unshift({
+                        id: newYear,
+                        total: mockAssets.length,
+                        ok: mockAssets.filter(function(a) { return a.status.indexOf("ปกติ") > -1; }).length,
+                        broken: mockAssets.filter(function(a) { return a.status.indexOf("ปกติ") === -1; }).length,
+                        status: "กำลังตรวจนับ",
+                        committee: "คณะทำงานแต่งตั้งเฉพาะกิจวิเคราะห์ข้อมูล",
+                        signature: "รอการเซ็นสัญญา",
+                        report: "รายงานผลการตรวจสอบพัสดุประจำปี พ.ศ. " + newYear
+                    });
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Admin",
+                        action: "เปิดรอบตรวจสอบประจำปีงบประมาณ พ.ศ. " + newYear + " ใหม่สำเร็จ"
+                    });
+                    
+                    Swal.fire('เปิดรอบใหม่สำเร็จ', 'เปิดรอบตรวจนับพัสดุกลางเรียบร้อย คณะกรรมการสามารถใช้ระบบเพื่อเริ่มลงนามได้', 'success');
+                }
+            });
+        }
+
+        // 9. ฟังก์ชันเสนอขอแทงตัดจำหน่ายบัญชีพัสดุ
+        function showDisposalForm() {
+            var optionsHtml = '';
+            mockAssets.forEach(function(a) {
+                optionsHtml += '<option value="' + a.code + '|' + a.name + '">' + a.name + ' (' + a.code + ')</option>';
+            });
+
+            var formHtml = '<div class="text-start">';
+            formHtml += '<label class="form-label mt-2">เลือกครุภัณฑ์ที่เสนอจำหน่าย</label>';
+            formHtml += '<select id="disp-asset-sel" class="form-select mb-2">' + optionsHtml + '</select>';
+            formHtml += '<label class="form-label">วิธีการจำหน่ายพัสดุ</label>';
+            formHtml += '<select id="disp-method" class="form-select mb-2">';
+            formHtml += '<option value="แทงจำหน่ายชำรุดทรุดโทรม">แทงจำหน่ายชำรุดทรุดโทรม</option>';
+            formHtml += '<option value="บริจาคเพื่อการกุศล">บริจาคเพื่อการกุศล</option>';
+            formHtml += '<option value="ขายทอดตลาด">ขายทอดตลาด</option>';
+            formHtml += '<option value="สูญหายประเมินค่าชดเชย">สูญหายประเมินค่าชดเชย</option>';
+            formHtml += '</select>';
+            formHtml += '<label class="form-label">สาเหตุประกอบความเห็น</label>';
+            formHtml += '<textarea id="disp-reason" class="form-control mb-2" rows="2" placeholder="กรุณาระบุรายละเอียดข้อเท็จจริงประกอบคำเสนอ"></textarea>';
+            formHtml += '<label class="form-label">มูลค่าซากพัสดุขั้นต่ำที่ประเมินได้ (บาท)</label>';
+            formHtml += '<input id="disp-scrap" type="number" class="form-control" value="100.00">';
+            formHtml += '</div>';
+
+            Swal.fire({
+                title: 'เสนอตัดบัญชีจำหน่ายครุภัณฑ์',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'เสนอบอร์ดพิจารณาจำหน่าย',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: function() {
+                    var selVal = document.getElementById('disp-asset-sel').value.split('|');
+                    var code = selVal[0];
+                    var name = selVal[1];
+                    var method = document.getElementById('disp-method').value;
+                    var reason = document.getElementById('disp-reason').value;
+                    var scrap = parseFloat(document.getElementById('disp-scrap').value);
+
+                    if (!reason) {
+                        Swal.showValidationMessage('กรุณาระบุเหตุผลในการเสนอจำหน่ายครั้งนี้');
+                    }
+                    return { code: code, name: name, method: method, reason: reason, scrap: scrap };
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var data = result.value;
+                    var newId = "DP-690" + (mockDisposal.length + 1);
+                    mockDisposal.unshift({
+                        id: newId,
+                        assetCode: data.code,
+                        assetName: data.name,
+                        method: data.method,
+                        reason: data.reason,
+                        scrapValue: data.scrap,
+                        date: new Date().toISOString().split('T')[0],
+                        status: "เสนอขอรับความเห็นชอบ"
+                    });
+                    
+                    // ปรับสถานะครุภัณฑ์ในระบบตารางหลัก
+                    var assetObj = mockAssets.find(function(a) { return a.code === data.code; });
+                    if (assetObj) {
+                        assetObj.status = "ชำรุด / รอจำหน่าย";
+                    }
+                    
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "ยื่นหนังสือขอทำแทงจำหน่ายชำรุด รหัสครุภัณฑ์: " + data.code
+                    });
+                    
+                    Swal.fire('เสนอขอตัดบัญชีสำเร็จ', 'ส่งคำร้องไปยังผู้มีอำนาจเพื่อเข้าตรวจสภาพและแต่งตั้งกรรมการตรวจรับประมูลแล้ว', 'success');
+                }
+            });
+        }
+
+        // 10. ฟังก์ชันจ่ายอุปกรณ์หรือพัสดุสิ้นเปลืองออกคลัง (Issue)
+        function issueInventory(id, name) {
+            var item = mockInventory.find(function(i) { return i.id === id; });
+            if (!item) return;
+
+            var formHtml = '<div class="text-start">';
+            formHtml += '<p class="mb-1"><b>รายการ:</b> ' + item.name + '</p>';
+            formHtml += '<p class="mb-2"><b>คงเหลือคงคลัง:</b> ' + item.qty + ' ' + item.unit + '</p>';
+            formHtml += '<hr>';
+            formHtml += '<label class="form-label">จำนวนที่ต้องการเบิกจ่าย</label>';
+            formHtml += '<input id="issue-qty" type="number" class="form-control" value="5" min="1" max="' + item.qty + '">';
+            formHtml += '<label class="form-label mt-2">ผู้มารับพัสดุ / แผนกผู้ขอเบิก</label>';
+            formHtml += '<input id="issue-requester" class="form-control" value="กองเลขานุการ กรม">';
+            formHtml += '</div>';
+
+            Swal.fire({
+                title: 'จ่ายพัสดุสิ้นเปลืองออกจากคลัง',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'ยืนยันจ่ายพัสดุออกจากคลัง',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: function() {
+                    var qtyInput = parseInt(document.getElementById('issue-qty').value);
+                    var requester = document.getElementById('issue-requester').value;
+                    
+                    if (qtyInput > item.qty) {
+                        Swal.showValidationMessage('ยอดจ่ายต้องไม่เกินจำนวนคงคลังในปัจจุบัน');
+                    }
+                    if (qtyInput <= 0 || isNaN(qtyInput)) {
+                        Swal.showValidationMessage('กรุณาระบุปริมาณการจ่ายให้ถูกต้อง');
+                    }
+                    return { qtyInput: qtyInput, requester: requester };
+                }
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var data = result.value;
+                    item.qty -= data.qtyInput;
+                    
+                    // อัปเดตสถานะคงเหลือ
+                    if (item.qty <= item.min) {
+                        item.status = "ต่ำกว่าเกณฑ์การสั่งซื้อ";
+                    }
+                    
+                    populateTables();
+                    
+                    auditLogs.unshift({
+                        time: new Date().toTimeString().split(' ')[0],
+                        user: "Asset Officer",
+                        action: "จ่ายวัสดุพัสดุ: " + item.name + " จำนวน " + data.qtyInput + " " + item.unit + " ให้กับ " + data.requester
+                    });
+                    
+                    Swal.fire('เบิกจ่ายสำเร็จ', 'ปรับปรุงระดับปริมาณยอดคลังพัสดุในระบบแล้ว', 'success');
+                }
+            });
+        }
+
+        // 11. ฟังก์ชันส่งเมลแผนบำรุงรักษาเชิงป้องกัน PM Schedule
+        function triggerPMEmailAlert() {
+            Swal.fire({
+                title: 'ส่งแผนบำรุงรักษารายปี',
+                text: 'คุณต้องการส่งประวัติกำหนดการตรวจบำรุงเชิงป้องกันของสัปดาห์นี้ไปยังอีเมลของช่างวิศวกรผู้ควบคุมระบบทั้งหมดหรือไม่?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งอีเมลแจ้งเตือนทันที'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire('ส่งการแจ้งเตือนสำเร็จ', 'ส่งอีเมลฉบับอัตโนมัติแจ้งพัสดุไปยังช่างซ่อมแล้ว', 'success');
+                }
+            });
+        }
+
+        // 12. ฟังก์ชันบันทึกการตั้งค่าระบบ Settings
+        function saveSystemSettings(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'บันทึกการตั้งค่า',
+                text: 'คุณยืนยันการตั้งค่ารหัสครุภัณฑ์และนโยบายความมั่นคงปลอดภัยสารสนเทศของพัสดุ?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกการกำหนดค่า'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'อัปเดตระบบสารสนเทศส่วนกลาง AMIS เรียบร้อยแล้ว',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+                    showTab('dashboard');
+                }
+            });
+        }
+
+        // 13. ฟังก์ชันเปิดหน้าต่างข้อมูลประวัติผู้ใช้งาน
+        function openProfile() {
+            var detailsHtml = '<div class="text-center mb-3">';
+            detailsHtml += '<img src="https://ui-avatars.com/api/?name=Government+User&background=0b3c5d&color=fff" class="rounded-circle mb-2" width="60" height="60">';
+            detailsHtml += '<h6 class="fw-bold m-0">เจ้าหน้าที่พัสดุอาวุโส</h6>';
+            detailsHtml += '<small class="text-muted">สำนักงานพัฒนาพัสดุกลางแห่งประเทศไทย</small>';
+            detailsHtml += '</div>';
+            detailsHtml += '<div class="text-start">';
+            detailsHtml += '<p class="mb-1 text-xs"><b>อีเมลผู้ดูแล:</b> staff-amis@gov.th</p>';
+            detailsHtml += '<p class="mb-1 text-xs"><b>ระดับสิทธิ์การรักษาความปลอดภัย:</b> Asset Officer (Admin)</p>';
+            detailsHtml += '<p class="mb-1 text-xs"><b>เลขประจำตัวข้าราชการ:</b> 1-0200-AMIS-SECURE</p>';
+            detailsHtml += '</div>';
+
+            Swal.fire({
+                title: 'ประวัติเจ้าหน้าที่ผู้เข้าระบบ',
+                html: detailsHtml,
+                icon: 'info',
+                confirmButtonText: 'ปิด'
+            });
+        }
+
+    </script>
+
+</body>
+</html>
